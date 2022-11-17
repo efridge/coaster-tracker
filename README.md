@@ -1,4 +1,6 @@
-# Getting Started with Create React App
+# Coaster Tracker
+
+This app renders a list of items submitted in a form. I created it for my Client Side class so we can practice saving data to firebase.
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
