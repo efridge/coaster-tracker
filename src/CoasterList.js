@@ -9,7 +9,7 @@ export default function CoasterList(props) {
             <ul>
               <li>Location: {coaster.location}</li>
               <li>
-                URL: <a href="{coaster.url}">{coaster.url}</a>
+                URL: <a href={coaster.url}>{coaster.url}</a>
               </li>
             </ul>
           </div>
