@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import CoasterForm from "./CoasterForm.js";
 import CoasterList from "./CoasterList.js";
 import { db } from "./firebase-db.js";
-import { onValue, ref, set as firebaseSet} from "firebase/database";
+import { onValue, ref, remove, push as firebasePush} from "firebase/database";
 
 import "./App.css";
 
@@ -15,7 +15,11 @@ function App() {
     return onValue(query, (snapshot) => {
       const data = snapshot.val();
       if (snapshot.exists()) {
-          setCoasters(data);
+        const coasterArray = [];
+        for (let [id, coaster] of Object.entries(data)) {
+          coasterArray.push({...coaster, id});
+        }
+          setCoasters(coasterArray);
       }
     });
   }, []);
@@ -25,7 +29,17 @@ function App() {
     const coastersRef = ref(db, "coasters");
 
     // Set the value in firebase. This will update our local state on the return trip from the db.
-    firebaseSet(coastersRef, [...coasters, coasterObj]);
+    firebasePush(coastersRef, coasterObj );
+  };
+
+  // The id will be the value that firebase has given it
+  const handleDelete = (coasterId) => {
+    const coastersRef = ref(db, `/coasters/${coasterId}`);
+
+    // Note, refresh isn't working for deletes so we handle that manually in state
+    remove(coastersRef).then( ()=> {
+      setCoasters( coasters.filter( coaster=>coaster.id !== coasterId) );
+    });
   };
 
   return (
@@ -41,7 +55,7 @@ function App() {
         <p>Gee I sure do love roller coasters. Oh yeah!!!</p>
         <h2>Create A Coaster</h2>
         <CoasterForm newCoasterCallback={handleNewCoaster}/>
-        <CoasterList coasters={coasters}/>
+        <CoasterList coasters={coasters} deleteCallback={handleDelete}/>
       </div>
     </>
   );
