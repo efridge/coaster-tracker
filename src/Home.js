@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import CoasterForm from "./CoasterForm.js";
 import CoasterList from "./CoasterList.js";
 import { db } from "./firebase-db.js";
-import { onValue, ref, remove, push as firebasePush } from "firebase/database";
+import { onValue, ref, remove, update, push as firebasePush } from "firebase/database";
 import { Link } from "react-router-dom";
 
 // Auth support
@@ -19,7 +19,6 @@ function HomePage() {
   useEffect(() => {
     if (user) {
       // Every time a new version of "coasters" comes down from the DB, update the local state
-      console.log(`coasters/${user.uid}`);
       const coastersRef = ref(db, `coasters/${user.uid}`);
       return onValue(coastersRef, (snapshot) => {
         const data = snapshot.val();
@@ -32,7 +31,7 @@ function HomePage() {
         }
       });
     } else {
-      console.log("no user");
+      console.error("no user");
     }
   }, [user]);
 
@@ -45,6 +44,15 @@ function HomePage() {
       firebasePush(coastersRef, coasterObj);
     } else {
       console.error("User is not logged in!");
+    }
+  };
+
+  const handleUpdate = (modifiedCoasterObj, coasterId) => {
+    if (user && coasterId ) {
+      const coastersRef = ref(db, `coasters/${user.uid}/${coasterId}`);
+      update(coastersRef, modifiedCoasterObj);
+    } else {
+      console.error("A logged in user and a coaster id are required");
     }
   };
 
@@ -75,6 +83,7 @@ function HomePage() {
           coasters={coasters}
           handleNewCoaster={handleNewCoaster}
           handleDelete={handleDelete}
+          handleUpdate={handleUpdate}
         />
       </div>
     </>
@@ -87,7 +96,7 @@ function Greeting(props) {
   const [user, loading, error] = useAuthState(auth);
 
   const handleSignOut = () => {
-    signOut(auth).catch((err) => console.log(err)); //log any errors for debugging
+    signOut(auth).catch((err) => console.error(err)); //log any errors for debugging
   };
 
   if (loading) {
@@ -108,11 +117,13 @@ function Greeting(props) {
         <button className="btn btn-primary" onClick={handleSignOut}>
           Sign Out
         </button>
+        <hr />
         <h2>Create A Coaster</h2>
         <CoasterForm newCoasterCallback={props.handleNewCoaster} />
         <CoasterList
           coasters={props.coasters}
           deleteCallback={props.handleDelete}
+          updateCallback={props.handleUpdate}
         />
       </>
     );
