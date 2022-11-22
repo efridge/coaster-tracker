@@ -61,7 +61,7 @@ export default function CoasterForm(props) {
             value={url}
           />
         </div>
-        <input type="submit" value={props.coaster ? 'Edit' : 'Add'} className="btn btn-primary mt-3"/>
+        <input type="submit" value="Save" className="btn btn-primary mt-3"/>
       </form>
     </div>
   );
