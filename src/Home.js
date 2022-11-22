@@ -1,54 +1,69 @@
 import React, { useState, useEffect } from "react";
-import CoasterForm from "./CoasterForm.js";
-import CoasterList from "./CoasterList.js";
 import { db } from "./firebase-db.js";
 import { onValue, ref, remove, update, push as firebasePush } from "firebase/database";
-import { Link } from "react-router-dom";
+import Coasters from "./Coasters.js";
 
 // Auth support
-import { getAuth, signOut } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import { useAuthState } from "react-firebase-hooks/auth";
 
 function HomePage() {
+  // Our list of coasters the user has created
   const [coasters, setCoasters] = useState([]);
 
-  // Auth
+  // The auth instance + the state of the auth
   const auth = getAuth();
   const [user] = useAuthState(auth);
 
+  // Run this code when the component finishes loading
   useEffect(() => {
+    // If we have a logged in user
     if (user) {
-      // Every time a new version of "coasters" comes down from the DB, update the local state
+      // Get a reference to this specific user's coaster list
       const coastersRef = ref(db, `coasters/${user.uid}`);
+
+      // Every time a new version of the user's list comes down from the DB, update the local state
       return onValue(coastersRef, (snapshot) => {
         const data = snapshot.val();
         if (snapshot.exists()) {
+
+          // Build up an array of user coasters and tack on the id as part of the object
           const coasterArray = [];
           for (let [id, coaster] of Object.entries(data)) {
             coasterArray.push({ ...coaster, id });
           }
+
+          // Set the local state to equal the coasters that came down from firebase
           setCoasters(coasterArray);
         }
       });
-    } else {
-      console.error("no user");
     }
   }, [user]);
 
-  const handleNewCoaster = (coasterObj) => {
+  // Callback for a new coaster being created.
+  // Takes in a coaster object and saves it to the user's coaster list.
+  const handleCreate = (coasterObj) => {
+    // If a user is logged in
     if (user) {
-      //get a reference to where sarah's age is stored in the database
+      // Get a reference to this user's coaster list
       const coastersRef = ref(db, `coasters/${user.uid}`);
 
-      // Set the value in firebase. This will update our local state on the return trip from the db.
+      // Set the value in firebase.
+      // This will update our local state on the return trip from the db.
       firebasePush(coastersRef, coasterObj);
+
+    // Show an error if this is called while the user isn't logged in
     } else {
       console.error("User is not logged in!");
     }
   };
 
+  // Callback for a coaster being updated.
+  // Takes in a coaster object and the id of the existing coaster to update.
   const handleUpdate = (modifiedCoasterObj, coasterId) => {
+    // If we have a logged in user and have been given a coaster id.
     if (user && coasterId ) {
+      // Get a reference to this specific coaster in the user's list and update it.
       const coastersRef = ref(db, `coasters/${user.uid}/${coasterId}`);
       update(coastersRef, modifiedCoasterObj);
     } else {
@@ -56,12 +71,15 @@ function HomePage() {
     }
   };
 
-  // The id will be the value that firebase has given it
+  // Callback for coaster deletions.
+  // The id will be the value that firebase has given it.
   const handleDelete = (coasterId) => {
+    // If we have a logged in user, get a reference to this specific coaster.
     if (user) {
       const coastersRef = ref(db, `/coasters/${user.uid}/${coasterId}`);
 
-      // Note, refresh isn't working for deletes so we handle that manually in state
+      // Remove this coaster by reference.
+      // Note, refresh isn't working for deletes so we handle that manually in state.
       remove(coastersRef).then(() => {
         setCoasters(coasters.filter((coaster) => coaster.id !== coasterId));
       });
@@ -79,62 +97,15 @@ function HomePage() {
       </nav>
       <div className="container">
         <p>Gee I sure do love roller coasters. Oh yeah!!!</p>
-        <Greeting
+        <Coasters
           coasters={coasters}
-          handleNewCoaster={handleNewCoaster}
+          handleCreate={handleCreate}
           handleDelete={handleDelete}
           handleUpdate={handleUpdate}
         />
       </div>
     </>
   );
-}
-
-function Greeting(props) {
-  // Auth
-  const auth = getAuth();
-  const [user, loading, error] = useAuthState(auth);
-
-  const handleSignOut = () => {
-    signOut(auth).catch((err) => console.error(err)); //log any errors for debugging
-  };
-
-  if (loading) {
-    //still waiting
-    return <p>Initializing user</p>;
-  }
-
-  if (error) {
-    //error logging in
-    return <p>Error: {error}</p>;
-  }
-
-  if (user) {
-    //user is defined, so show the greeting
-    return (
-      <>
-        <p>Welcome, {user.displayName}!</p>
-        <button className="btn btn-primary" onClick={handleSignOut}>
-          Sign Out
-        </button>
-        <hr />
-        <h2>Create A Coaster</h2>
-        <CoasterForm newCoasterCallback={props.handleNewCoaster} />
-        <CoasterList
-          coasters={props.coasters}
-          deleteCallback={props.handleDelete}
-          updateCallback={props.handleUpdate}
-        />
-      </>
-    );
-  } else {
-    //user is undefined
-    return (
-      <p>
-        Please <Link to="/login">sign in</Link>
-      </p>
-    );
-  }
 }
 
 export default HomePage;

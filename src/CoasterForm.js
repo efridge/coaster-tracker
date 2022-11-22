@@ -2,14 +2,14 @@ import React, { useState } from "react";
 
 export default function CoasterForm(props) {
 
-  //If initialization values given, use those to init state
+  // If initialization values given, use those to init state
   const [name, setName] = useState( (props.coaster && props.coaster.name) || '');
   const [location, setLocation] = useState( (props.coaster && props.coaster.location) || '');
   const [url, setURL] = useState( (props.coaster && props.coaster.url) || '');
 
   const locations = ["USA", "Europe", "Asia"];
 
-  //respond to input changes
+  // Respond to input changes
   const handleNameChange = (event) => setName(event.target.value);
   const handleLocationChange = (event) => setLocation(event.target.value);
   const handleUrlChange = (event) => setURL(event.target.value);

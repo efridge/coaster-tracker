@@ -9,10 +9,10 @@ function App() {
 
   return (
     <Routes> {/* the collection of routes to match */}
-        {/* if currentUrlPath === "home" */}
+        {/* if currentUrlPath === "/" */}
         <Route path="/" element={<HomePage />} />
 
-        {/* if currentUrlPath ===  "about" */}
+        {/* if currentUrlPath ===  "login" */}
         <Route path="login" element={<LoginPage />} />
     </Routes>
   );
