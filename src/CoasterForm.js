@@ -1,19 +1,22 @@
 import React, { useState } from "react";
 
 export default function CoasterForm(props) {
-  const [name, setName] = useState("");
-  const [location, setLocation] = useState("");
-  const [url, setURL] = useState("");
+
+  // If initialization values given, use those to init state
+  const [name, setName] = useState( (props.coaster && props.coaster.name) || '');
+  const [location, setLocation] = useState( (props.coaster && props.coaster.location) || '');
+  const [url, setURL] = useState( (props.coaster && props.coaster.url) || '');
 
   const locations = ["USA", "Europe", "Asia"];
 
-  //respond to input changes
+  // Respond to input changes
   const handleNameChange = (event) => setName(event.target.value);
   const handleLocationChange = (event) => setLocation(event.target.value);
   const handleUrlChange = (event) => setURL(event.target.value);
 
   const handleFormSubmit = (event) => {
-    props.newCoasterCallback({ name, location, url });
+    // Second parameter is an optional id value - will only be used on edits
+    props.newCoasterCallback({ name, location, url}, (props.coaster && props.coaster.id) || null );
     event.preventDefault();
   };
 
@@ -58,7 +61,7 @@ export default function CoasterForm(props) {
             value={url}
           />
         </div>
-        <input type="submit" value="Add" className="btn btn-primary mt-3"/>
+        <input type="submit" value="Save" className="btn btn-primary mt-3"/>
       </form>
     </div>
   );
